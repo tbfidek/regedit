@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Registry Editor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+    #sidebar {
+      width: 30%;
+      background: #f0f0f0;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+    #registry {
+      flex: 1;
+      padding: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      cursor: pointer;
+      margin-bottom: 5px;
+    }
+    li:hover {
+      text-decoration: underline;
+    }
+    .sublist {
+      display: none;
+      margin-left: 15px;
+    }
+    .sublist.active {
+      display: block;
+    }
+
+    #sidebar {
+      width: 30%;
+      background: #f0f0f0;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      overflow-y: auto; /* Added scrollbar for overflow */
+      max-height: 80vh; /* Added maximum height to trigger scrollbar */
+    }
+
+    /* Updated styles for subkeys list */
+    .sublist {
+      display: none;
+      margin-left: 15px;
+      overflow-y: auto; /* Added scrollbar for overflow */
+      max-height: calc(100vh - 150px); /* Added maximum height to trigger scrollbar */
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <ul id="rootList">
+        <li class="root" data-key="HKEY_CLASSES_ROOT">HKEY_CLASSES_ROOT</li>
+        <li class="root" data-key="HKEY_CURRENT_USER">HKEY_CURRENT_USER</li>
+        <li class="root" data-key="HKEY_LOCAL_MACHINE">HKEY_LOCAL_MACHINE</li>
+        <li class="root" data-key="HKEY_USERS">HKEY_USERS</li>
+        <li class="root" data-key="HKEY_CURRENT_CONFIG">HKEY_CURRENT_CONFIG</li>
+    </ul>
+  </div>
+  <div id="registry">
+    <!-- Registry values will be displayed here -->
+    Select a key to view its values.
+  </div>
+
+  <script>
+    // document.addEventListener('DOMContentLoaded', () => {
+    // });
+    const rootList = document.getElementById('rootList');
+    const registryDiv = document.getElementById('registry');
+
+    rootList.addEventListener('click', async (event) => {
+      if (event.target.classList.contains('root')) {
+        const selectedKey = event.target.dataset.key;
+        const subkeys = await fetchSubkeys(selectedKey, '');
+        console.log(event.target)
+        toggleSubkeys(selectedKey, subkeys, event.target);
+      }
+    });
+    async function fetchSubkeys(root, selectedKey) {
+        const response = await fetch('/get_subkeys', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ root: root, key: selectedKey })
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          return data;
+        } else {
+          console.error('Failed to fetch subkeys');
+          return [];
+        }
+      }
+  
+      function toggleSubkeys(root, subkeys, rootKeyElement) {
+        const existingSublist = rootKeyElement.nextElementSibling;
+        console.log(rootKeyElement.innerHTML)
+        if (existingSublist && existingSublist.classList.contains('sublist')) {
+          existingSublist.classList.toggle('active');
+        } else {
+          const subkeysList = document.createElement('ul');
+          subkeysList.classList.add('sublist');
+  
+          subkeys.forEach(subkey => {
+            const listItem = document.createElement('li');
+            listItem.textContent = subkey;
+            listItem.classList.add('sublist-item');
+            listItem.addEventListener('click', async (event) => {
+                var selectedKey = ''
+                if(!rootKeyElement.classList.contains('root')){
+                    selectedKey = rootKeyElement.innerHTML.concat("\\",subkey);
+                } else {
+                    selectedKey = subkey
+                }
+                const subkeys = await fetchSubkeys(root, selectedKey);
+                console.log(subkeys)
+                toggleSubkeys(root, subkeys, event.target);
+            });
+            subkeysList.appendChild(listItem);
+          });
+  
+          rootKeyElement.insertAdjacentElement('afterend', subkeysList);
+          subkeysList.classList.add('active');
+        }
+      }
+
+  </script>
+  
+</body>
+</html>

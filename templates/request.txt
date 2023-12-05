@@ -1,0 +1,16 @@
+Realizati o pagina web care sa aiba backend-ul scris complet în Python, și care sa mimeze
+comportamentul unui tool similar cu utilitarul RegEdit din Windows. Backend-ul va fi rulat pe
+masina curentă iar site-ul va fi accesat pe 127.0.0.1. Interfața web trebuie sa suporte
+următoarele funcții:
+
+● Creare valori de regiștri (string, dword, multi-string, buffer)
+● Creare cheie de regiștri
+● Redenumire cheie de regiștri
+● Redenumire nume pentru valori ale registrilor
+● Ștergere cheie / valoare dintr-un registru
+● Editare valoare a unui registru (daca este de tipul string)
+● Căutare a unei valori/inclusiv recursiv într-o cheie de regiștri (valori string)
+
+Interfața web va avea un mod de vizualizare similar cu cel din interfata de la utilitarul RegEdit
+din Windows (două panel-ul - cel din stanga un arbore prin care se poate naviga prin regiștri ,
+cel din dreapta o lista cu cheile de regiștri și valorile lor)
