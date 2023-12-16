@@ -1,9 +1,53 @@
 import winreg
 
 # general testing
-key_path = r"SOFTWARE\\CSSO\\CSSO1"
+key_path = r"SOFTWARE\\salcf10"
 hive = "HKEY_CURRENT_USER"
 new_key_name = "CSSO1"
+
+# create key tree
+def enum_all_subkeys(root_key, path=''):
+    try:
+        with winreg.OpenKey(root_key, path, 0, winreg.KEY_READ) as reg_key:
+            num_subkeys = winreg.QueryInfoKey(reg_key)[0]
+            subkeys = [winreg.EnumKey(reg_key, i) for i in range(num_subkeys)]
+            return subkeys
+    except OSError as e:
+        print(f"Error: {e}")
+
+
+# retrieve registry values for a key
+def get_registry_info(root, subkey_path):
+    result = []
+    try:
+        with winreg.OpenKey(root, subkey_path) as key:
+            num_vals = winreg.QueryInfoKey(key)[1]
+            print(f"Subkey: {subkey_path}")
+            print("Name, Value, Type:")
+            for i in range(num_vals):
+                name, value, type_ = winreg.EnumValue(key, i)
+                value_type_str = None
+                
+                if type_ == winreg.REG_SZ:
+                    value_type_str = "REG_SZ"
+                elif type_ == winreg.REG_EXPAND_SZ:
+                    value_type_str = "REG_EXPAND_SZ"
+                elif type_ == winreg.REG_BINARY:
+                    value_type_str = "REG_BINARY"
+                elif type_ == winreg.REG_DWORD:
+                    value_type_str = "REG_DWORD"
+                    value = hex(value) 
+
+                result.append([name, value_type_str, value])
+            
+            return result
+        
+    except FileNotFoundError:
+        print("Subkey not found.")
+    except PermissionError:
+        print("Permission denied.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 # ✓ create registry key
@@ -22,22 +66,23 @@ def create_registry_key(hive, key_path):
 # ✓ delete registry key
 def delete_registry_key(hive, key_path):
     root_key = getattr(winreg, hive)
-    try:
-        # open the reg key
-        key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
-        
-        # recursively delete all subkeys and their values
-        winreg.DeleteKey(key, "")
-        
-        # close the key after deleting
-        winreg.CloseKey(key)
-        
-        print(f"Registry key '{key_path}' deleted successfully.")
-    except FileNotFoundError:
-        print(f"Registry key '{key_path}' not found.")
-    except Exception as e:
-        print(f"Error deleting registry key: {e}")
+    old_key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
+    
+    subkeys_number, _, _ = winreg.QueryInfoKey(old_key)
+    if subkeys_number != 0:
+        for i in range(subkeys_number - 1, -1, -1):
+            #print(f"I: {i}")
+            subkey_path = key_path + '\\' + winreg.EnumKey(old_key, i)
+            #print(f"KEY_PATH: {subkey_path}, SUBKEYS_NUMBER: {subkeys_number}")
+            subkey = winreg.OpenKey(root_key, subkey_path, 0, winreg.KEY_ALL_ACCESS)
+            subkey_number_next, _, _ = winreg.QueryInfoKey(subkey)
+            if subkey_number_next == 0:
+                winreg.DeleteKey(root_key, subkey_path)
+            else:
+                delete_registry_key(hive, subkey_path)
 
+    winreg.DeleteKey(root_key, key_path)
+    winreg.CloseKey(old_key)
 
 # ? create registry values (string ✓, dword ✓, multi-string ✓, buffer ?)
 def create_registry_value(hive, key_path, value_name, value_type, value):
@@ -57,9 +102,7 @@ def create_registry_value(hive, key_path, value_name, value_type, value):
         print(f"Registry key '{key_path}' not found.")
     except Exception as e:
         print(f"Error creating registry value: {e}")
-#create_registry_value(hive, key_path, "bnn", winreg.REG_DWORD, 0)
-#create_registry_value(hive, key_path, "hello", winreg.REG_SZ, "world")
-#create_registry_value(hive, key_path, "idk", winreg.REG_MULTI_SZ, ["String1", "String2"])
+
 
 # ✓ delete a registry key value
 def delete_registry_value(hive, key_path, value_name):
@@ -79,43 +122,57 @@ def delete_registry_value(hive, key_path, value_name):
 
 
 # ? rename a registry key - works only for keys with no subkeys
-def rename_registry_key1(hive, old_key_path, new_key_name):
+def move_values(old_key, new_key):
+    _, subkeys_values_number, _ = winreg.QueryInfoKey(old_key)
+    for j in range(subkeys_values_number):
+        value_name, value_data, value_type = winreg.EnumValue(old_key, j)
+        winreg.SetValueEx(new_key, value_name, 0, value_type, value_data)
+
+def move_subkeys(hive, new_key_path, old_key_path):
     try:
         root_key = getattr(winreg, hive)
-        old_key = winreg.OpenKey(root_key, old_key_path, 0, winreg.KEY_READ)
-        
-        # read the values and subkeys from the old key
-        _, num_values, _ = winreg.QueryInfoKey(old_key)
+        old_key = winreg.OpenKey(root_key, old_key_path, 0, winreg.KEY_ALL_ACCESS)
+        renamed_key = winreg.CreateKey(root_key, new_key_path)
 
-        # open the parent key for the old key
-        parent_key_path = "\\".join(old_key_path.split("\\")[:-1])
-        parent_key = winreg.OpenKey(root_key, parent_key_path, 0, winreg.KEY_WRITE)
+        move_values(old_key, renamed_key)
 
-        # create a new key with the desired name
-        new_key_path = "\\".join(old_key_path.split("\\")[:-1]) + "\\" + new_key_name
-        winreg.CreateKey(parent_key, new_key_name)
-        new_key = winreg.OpenKey(parent_key, new_key_name, 0, winreg.KEY_ALL_ACCESS)
-        
-        # copy values from old key to the new one
-        for i in range(num_values):
-            value_name, value, value_type = winreg.EnumValue(old_key, i)
-            winreg.SetValueEx(new_key, value_name, 0, value_type, value)
-        
-        # close the keys
+        subkeys_number, _, _ = winreg.QueryInfoKey(old_key)
+        for i in range(subkeys_number):
+            subkey_name = winreg.EnumKey(old_key, i)
+            subkey_path = old_key_path + '\\' + subkey_name
+            move_subkeys(hive, new_key_path + '\\' + subkey_name, subkey_path)
+
         winreg.CloseKey(old_key)
-        winreg.CloseKey(new_key)
+        winreg.CloseKey(renamed_key)
+
+    except Exception as e:
+        print(f"Error moving subkeys: {e}")
+
+def rename_registry_key(hive, old_key_path, new_key_name):
+    try:
+        root_key = getattr(winreg, hive)
+        new_key_path = '\\'.join(old_key_path.split('\\')[:-1]) + '\\' + new_key_name
+
+        # check if the new key name already exists
+        try:
+            winreg.OpenKey(root_key, new_key_path, 0, winreg.KEY_READ)
+            raise Exception(f"Registry key '{new_key_name}' already exists.")
+        except FileNotFoundError:
+            pass
+        
+        parent_key_path = '\\'.join(old_key_path.split('\\')[:-1])
+        parent_key = winreg.OpenKey(root_key, parent_key_path, 0, winreg.KEY_WRITE)
+        
+        # create a new key with the desired name
+        winreg.CreateKey(parent_key, new_key_name)
+        move_subkeys(hive, new_key_path, old_key_path)
+        delete_registry_key(hive, old_key_path)
         winreg.CloseKey(parent_key)
-        
-        # delete the old key
-        winreg.DeleteKey(root_key, old_key_path)
-        
-        print(f"Registry key '{old_key_path}' renamed to '{new_key_path}' successfully.")
-    except FileNotFoundError:
-        print(f"Registry key '{old_key_path}' not found.")
+
     except Exception as e:
         print(f"Error renaming registry key: {e}")
 
-
+    
 # ✓ rename a registry value
 def rename_registry_value(hive, key_path, old_value_name, new_value_name):
     try:
@@ -195,3 +252,12 @@ def find_value_in_registry(hive, key_path, value_name):
     except Exception as e:
         print(f"Error searching registry value: {e}")
 #find_value_in_registry(hive, key_path, "filenr")
+
+
+
+# rename_registry_key("HKEY_CURRENT_USER", key_path, "salcf10")
+
+# create_registry_value(hive, key_path, "bnnn", winreg.REG_DWORD, 0)
+# create_registry_value(hive, key_path, "helllo", winreg.REG_SZ, "world")
+# create_registry_value(hive, key_path, "idkk", winreg.REG_MULTI_SZ, ["String1", "String2"])
+# create_registry_value(hive, key_path, "idkkkk", winreg.REG_BINARY, b"hello")
