@@ -1,7 +1,9 @@
 import winreg
+import json
+import base64
 
 # general testing
-key_path = r"SOFTWARE\\salcf10"
+key_path = r"SOFTWARE\\salcf12\\cfff"
 hive = "HKEY_CURRENT_USER"
 new_key_name = "CSSO1"
 
@@ -34,11 +36,14 @@ def get_registry_info(root, subkey_path):
                     value_type_str = "REG_EXPAND_SZ"
                 elif type_ == winreg.REG_BINARY:
                     value_type_str = "REG_BINARY"
+                    result.append([name, value_type_str, value.decode('ISO-8859-1')])
+                    continue
                 elif type_ == winreg.REG_DWORD:
                     value_type_str = "REG_DWORD"
                     value = hex(value) 
 
                 result.append([name, value_type_str, value])
+
             
             return result
         
@@ -88,11 +93,18 @@ def delete_registry_key(hive, key_path):
 def create_registry_value(hive, key_path, value_name, value_type, value):
     try:
         root_key = getattr(winreg, hive)
+        type = getattr(winreg, value_type)
         # open the reg key
         key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
         
         # create the value
-        winreg.SetValueEx(key, value_name, 0, value_type, value)
+
+        if(value_type == "REG_BINARY"):
+            value = str.encode(value)
+        elif(value_type == "REG_DWORD"):
+            value = int(value)
+
+        winreg.SetValueEx(key, value_name, 0, type, value)
         
         # close the key after deleting
         winreg.CloseKey(key)
@@ -174,19 +186,23 @@ def rename_registry_key(hive, old_key_path, new_key_name):
 
     
 # ✓ rename a registry value
-def rename_registry_value(hive, key_path, old_value_name, new_value_name):
+def rename_registry_value(hive, key_path, old_value_name, new_value_name, new_value):
     try:
         root_key = getattr(winreg, hive)
         key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
 
         # read the data and type of the old value
-        value_data, value_type = winreg.QueryValueEx(key, old_value_name)
+        value, value_type = winreg.QueryValueEx(key, old_value_name)
 
         # create a new value with the new name and copy the data
-        winreg.SetValueEx(key, new_value_name, 0, value_type, value_data)
+        if(value_type == 1):
+            value = new_value
+
+        winreg.SetValueEx(key, new_value_name, 0, value_type, value)
 
         # delete the old value
-        winreg.DeleteValue(key, old_value_name)
+        if old_value_name != new_value_name:
+            winreg.DeleteValue(key, old_value_name)
         winreg.CloseKey(key)
         
         print(f"Registry value '{old_value_name}' renamed to '{new_value_name}' successfully.")
@@ -231,7 +247,8 @@ def find_value_in_registry(hive, key_path, value_name):
         # check the values in the current key
         try:
             value_data, value_type = winreg.QueryValueEx(key, value_name)
-            print(f"Found value '{value_name}' with data '{value_data}' in key: {key_path}")
+            return hive + '\\' + key_path
+            #print(f"Found value '{value_name}' with data '{value_data}' in key: {key_path}")
         except FileNotFoundError:
             pass  # value not found in the current key
         
@@ -241,7 +258,9 @@ def find_value_in_registry(hive, key_path, value_name):
             while True:
                 subkey_name = winreg.EnumKey(key, i)
                 subkey_path = f"{key_path}\\{subkey_name}"
-                find_value_in_registry(hive, subkey_path, value_name)
+                path = find_value_in_registry(hive, subkey_path, value_name)
+                if path is not None:
+                    return path
                 i += 1
         except OSError:
             pass 
@@ -260,4 +279,4 @@ def find_value_in_registry(hive, key_path, value_name):
 # create_registry_value(hive, key_path, "bnnn", winreg.REG_DWORD, 0)
 # create_registry_value(hive, key_path, "helllo", winreg.REG_SZ, "world")
 # create_registry_value(hive, key_path, "idkk", winreg.REG_MULTI_SZ, ["String1", "String2"])
-# create_registry_value(hive, key_path, "idkkkk", winreg.REG_BINARY, b"hello")
+#create_registry_value(hive, key_path, "idkkkk", winreg.REG_BINARY, b"hello")
