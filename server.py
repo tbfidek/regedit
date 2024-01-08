@@ -5,10 +5,21 @@ app = Flask(__name__, static_folder='static')
 
 @app.route('/')
 def index():
+    """
+    Render the index.html template.
+
+    :return: Rendered HTML template.
+    """
     return render_template('index.html')
 
 @app.route('/get_subkeys', methods=['POST'])
 def get_subkeys():
+    """
+    Get subkeys for a given registry key.
+
+    :return: JSON response containing subkeys.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     selected_key = data.get('key')
@@ -19,6 +30,12 @@ def get_subkeys():
 
 @app.route('/get_registry_info', methods=['POST'])
 def get_reg_info():
+    """
+    Get registry information for a given key.
+
+    :return: JSON response containing registry information.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     selected_key = data.get('key')
@@ -28,6 +45,12 @@ def get_reg_info():
 
 @app.route('/rename_reg_value', methods=['POST'])
 def save_reg_info():
+    """
+    Rename a registry value.
+
+    :return: JSON response containing registry information after renaming the value.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     selected_key = data.get('selected_key')
@@ -39,6 +62,12 @@ def save_reg_info():
 
 @app.route('/delete_reg_value', methods=['POST'])
 def delete_reg_value():
+    """
+    Delete a registry value.
+
+    :return: JSON response containing registry information after deleting the value.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     selected_key = data.get('selected_key')
@@ -48,6 +77,12 @@ def delete_reg_value():
 
 @app.route('/delete_reg_key', methods=['POST'])
 def delete_reg_key():
+    """
+    Delete a registry key.
+
+    :return: JSON response containing registry information after deleting the key.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     selected_key = data.get('selected_key')
@@ -56,6 +91,12 @@ def delete_reg_key():
 
 @app.route('/create_reg_key', methods=['POST'])
 def create_reg_key():
+    """
+    Create a registry key.
+
+    :return: JSON response containing registry information after creating the key.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     selected_key = data.get('selected_key')
@@ -66,6 +107,12 @@ def create_reg_key():
 
 @app.route('/rename_reg_key', methods=['POST'])
 def rename_reg_key():
+    """
+    Rename a registry key.
+
+    :return: JSON response containing registry information after renaming the key.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     old_key = data.get('old_key')
@@ -75,6 +122,12 @@ def rename_reg_key():
 
 @app.route('/create_reg_value', methods=['POST'])
 def create_reg_value():
+    """
+    Create a registry value.
+
+    :return: JSON response containing registry information after creating the value.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     path = data.get('path')
@@ -86,6 +139,12 @@ def create_reg_value():
 
 @app.route('/search_reg_value', methods=['POST'])
 def search_reg_value():
+    """
+    Search for a value in a registry key or its subkeys.
+
+    :return: JSON response containing registry information for the found value.
+    :rtype: string
+    """
     data = request.get_json()
     root = data.get('root')
     path = data.get('path')
@@ -95,6 +154,12 @@ def search_reg_value():
 
 @app.route('/set_url', methods = ['POST'])
 def set_url():
+    """
+    Set a URL as a cookie.
+
+    :return: Response object.
+    :rtype: string
+    """
     data = request.get_json()
     url = data.get('url')
     response = make_response()
@@ -103,6 +168,12 @@ def set_url():
 
 @app.route('/get_url', methods=["GET"])
 def get_url():
+    """
+    Get a URL from cookies.
+
+    :return: JSON response containing the URL.
+    :rtype: string
+    """
     return jsonify(request.cookies.get('url'))
 
 if __name__ == '__main__':
