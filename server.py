@@ -1,52 +1,11 @@
-from flask import Flask, render_template, request, jsonify
-
+from flask import Flask, render_template, request, jsonify, make_response
+import regedit_fct as reg
 import winreg 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 @app.route('/')
 def index():
-    return render_template('index.html')    
-
-def enum_subkeys(root_hkey):
-    try:
-        root_key = getattr(winreg, root_hkey)
-        with winreg.OpenKey(root_key, '', 0, winreg.KEY_READ) as reg_key:
-            num_subkeys = winreg.QueryInfoKey(reg_key)[0]
-            subkeys = [winreg.EnumKey(reg_key, i) for i in range(num_subkeys)]
-            return subkeys
-    except OSError as e:
-        print(f"Error: {e}")
-        return []
-
-import winreg
-
-def enum_all_subkeys(root_key, path=''):
-    try:
-        with winreg.OpenKey(root_key, path, 0, winreg.KEY_READ) as reg_key:
-            num_subkeys = winreg.QueryInfoKey(reg_key)[0]
-            subkeys = [winreg.EnumKey(reg_key, i) for i in range(num_subkeys)]
-            
-            if subkeys:
-                for subkey in subkeys:
-                    full_path = f"{path}\\{subkey}" if path else subkey
-                    print(full_path)
-                    enum_all_subkeys(root_key, full_path)
-    except OSError as e:
-        print(f"Error: {e}")
-
-def enum_all_subkeys_test(root_key, path=''):
-    try:
-        with winreg.OpenKey(root_key, path, 0, winreg.KEY_READ) as reg_key:
-            num_subkeys = winreg.QueryInfoKey(reg_key)[0]
-            subkeys = [winreg.EnumKey(reg_key, i) for i in range(num_subkeys)]
-            return subkeys
-    except OSError as e:
-        print(f"Error: {e}")
-
-# Example usage:
-#root_hives = [winreg.HKEY_CLASSES_ROOT, winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_USERS, winreg.HKEY_CURRENT_CONFIG]
-#for root_hive in root_hives:
-
+    return render_template('index.html')
 
 @app.route('/get_subkeys', methods=['POST'])
 def get_subkeys():
@@ -54,8 +13,97 @@ def get_subkeys():
     root = data.get('root')
     selected_key = data.get('key')
     root_key = getattr(winreg, root)
-    subkeys = enum_all_subkeys_test(root_key, selected_key)
+    subkeys = reg.enum_all_subkeys(root_key, selected_key)
     return jsonify(subkeys)
 
+
+@app.route('/get_registry_info', methods=['POST'])
+def get_reg_info():
+    data = request.get_json()
+    root = data.get('root')
+    selected_key = data.get('key')
+    root_key = getattr(winreg, root)
+    registry_info = reg.get_registry_info(root_key, selected_key)
+    return jsonify(registry_info)
+
+@app.route('/rename_reg_value', methods=['POST'])
+def save_reg_info():
+    data = request.get_json()
+    root = data.get('root')
+    selected_key = data.get('selected_key')
+    new_name = data.get('new_name')
+    old_name = data.get('old_name')
+    new_value = data.get('new_value')
+    registry_info = reg.rename_registry_value(root, selected_key, old_name, new_name, new_value)
+    return jsonify(registry_info)
+
+@app.route('/delete_reg_value', methods=['POST'])
+def delete_reg_value():
+    data = request.get_json()
+    root = data.get('root')
+    selected_key = data.get('selected_key')
+    value_name = data.get('value_name')
+    registry_info = reg.delete_registry_value(root, selected_key, value_name)
+    return jsonify(registry_info)
+
+@app.route('/delete_reg_key', methods=['POST'])
+def delete_reg_key():
+    data = request.get_json()
+    root = data.get('root')
+    selected_key = data.get('selected_key')
+    registry_info = reg.delete_registry_key(root, selected_key)
+    return jsonify(registry_info)
+
+@app.route('/create_reg_key', methods=['POST'])
+def create_reg_key():
+    data = request.get_json()
+    root = data.get('root')
+    selected_key = data.get('selected_key')
+    name = data.get('name')
+    path = selected_key + '\\' + name
+    registry_info = reg.create_registry_key(root, path)
+    return jsonify(registry_info)
+
+@app.route('/rename_reg_key', methods=['POST'])
+def rename_reg_key():
+    data = request.get_json()
+    root = data.get('root')
+    old_key = data.get('old_key')
+    new_name = data.get('name')
+    registry_info = reg.rename_registry_key(root, old_key, new_name)
+    return jsonify(registry_info)
+
+@app.route('/create_reg_value', methods=['POST'])
+def create_reg_value():
+    data = request.get_json()
+    root = data.get('root')
+    path = data.get('path')
+    name = data.get('name')
+    type = data.get('type')
+    value = data.get('value')
+    registry_info = reg.create_registry_value(root, path, name, type, value)
+    return jsonify(registry_info)
+
+@app.route('/search_reg_value', methods=['POST'])
+def search_reg_value():
+    data = request.get_json()
+    root = data.get('root')
+    path = data.get('path')
+    name = data.get('name')
+    registry_info = reg.find_value_in_registry(root, path, name)
+    return jsonify(registry_info)
+
+@app.route('/set_url', methods = ['POST'])
+def set_url():
+    data = request.get_json()
+    url = data.get('url')
+    response = make_response()
+    response.set_cookie('url', url)
+    return response
+
+@app.route('/get_url', methods=["GET"])
+def get_url():
+    return jsonify(request.cookies.get('url'))
+
 if __name__ == '__main__':
-    app.run(host = '127.0.0.1', port=5000)
+    app.run(debug=True, host = '127.0.0.1', port=5000)
