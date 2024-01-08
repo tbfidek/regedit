@@ -1,14 +1,17 @@
 import winreg
-import json
-import base64
-
-# general testing
-key_path = r"SOFTWARE\\salcf12\\cfff"
-hive = "HKEY_CURRENT_USER"
-new_key_name = "CSSO1"
 
 # create key tree
 def enum_all_subkeys(root_key, path=''):
+    """
+    Enumerates all subkeys under a given registry key.
+
+    :param root_key: The root key to start enumerating from.
+    :type root_key: string
+    :param path: The path of the registry key.
+    :type path: string
+    :return: A list containing the names of all subkeys.
+    :rtype: list 
+    """
     try:
         with winreg.OpenKey(root_key, path, 0, winreg.KEY_READ) as reg_key:
             num_subkeys = winreg.QueryInfoKey(reg_key)[0]
@@ -20,6 +23,17 @@ def enum_all_subkeys(root_key, path=''):
 
 # retrieve registry values for a key
 def get_registry_info(root, subkey_path):
+    """
+    Retrieves registry values for a given key.
+
+    :param root: The root key to start searching from.
+    :type root: string
+    :param subkey_path: The path of the registry key.
+    :type subkey_path: string
+
+    :return: A list containing information about the registry values.
+    :rtype: list
+    """
     result = []
     try:
         with winreg.OpenKey(root, subkey_path) as key:
@@ -57,6 +71,14 @@ def get_registry_info(root, subkey_path):
 
 # ✓ create registry key
 def create_registry_key(hive, key_path):
+    """
+    Create a new registry key.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key to create.
+    :type key_path: string
+    """
     try:
         root_key = getattr(winreg, hive)
         # open a registry key (create if it doesn't exist)
@@ -70,6 +92,14 @@ def create_registry_key(hive, key_path):
 
 # ✓ delete registry key
 def delete_registry_key(hive, key_path):
+    """
+    Delete a registry key and all its subkeys recursively.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key to delete.
+    :type key_path: string
+    """
     root_key = getattr(winreg, hive)
     old_key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
     
@@ -91,6 +121,20 @@ def delete_registry_key(hive, key_path):
 
 # ? create registry values (string ✓, dword ✓, multi-string ✓, buffer ?)
 def create_registry_value(hive, key_path, value_name, value_type, value):
+    """
+    Create a new registry value.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key where the value will be created.
+    :type key_path: string
+    :param value_name: The name of the new value.
+    :type value_name: string
+    :param value_type: The type of the new value (e.g., "REG_SZ", "REG_DWORD").
+    :type value_type: string
+    :param value: The data to be stored in the value.
+    :type value: string, int, binary
+    """
     try:
         root_key = getattr(winreg, hive)
         type = getattr(winreg, value_type)
@@ -118,6 +162,16 @@ def create_registry_value(hive, key_path, value_name, value_type, value):
 
 # ✓ delete a registry key value
 def delete_registry_value(hive, key_path, value_name):
+    """
+    Delete a specific value from a registry key.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key.
+    :type key_path: string
+    :param value_name: The name of the value to delete.
+    :type value_name: string
+    """
     try:
         root_key = getattr(winreg, hive)
         key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
@@ -134,13 +188,33 @@ def delete_registry_value(hive, key_path, value_name):
 
 
 # ? rename a registry key - works only for keys with no subkeys
+
 def move_values(old_key, new_key):
+    """
+    Move values from one registry key to another.
+
+    :param old_key: The path of the source registry key.
+    :type old_key: string
+    :param new_key: The path of the target registry key.
+    :type new_key: string
+    """
+    
     _, subkeys_values_number, _ = winreg.QueryInfoKey(old_key)
     for j in range(subkeys_values_number):
         value_name, value_data, value_type = winreg.EnumValue(old_key, j)
         winreg.SetValueEx(new_key, value_name, 0, value_type, value_data)
 
 def move_subkeys(hive, new_key_path, old_key_path):
+    """
+    Move subkeys from one registry key to another.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param new_key_path: The path of the target registry key.
+    :type new_key_path: string
+    :param old_key_path: The path of the source registry key.
+    :type old_key_path: string
+    """
     try:
         root_key = getattr(winreg, hive)
         old_key = winreg.OpenKey(root_key, old_key_path, 0, winreg.KEY_ALL_ACCESS)
@@ -161,6 +235,16 @@ def move_subkeys(hive, new_key_path, old_key_path):
         print(f"Error moving subkeys: {e}")
 
 def rename_registry_key(hive, old_key_path, new_key_name):
+    """
+    Rename a registry key.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param old_key_path: The path of the registry key to rename.
+    :type old_key_path: string
+    :param new_key_name: The new name for the registry key.
+    :type new_key_name: string
+    """
     try:
         root_key = getattr(winreg, hive)
         new_key_path = '\\'.join(old_key_path.split('\\')[:-1]) + '\\' + new_key_name
@@ -187,6 +271,20 @@ def rename_registry_key(hive, old_key_path, new_key_name):
     
 # ✓ rename a registry value
 def rename_registry_value(hive, key_path, old_value_name, new_value_name, new_value):
+    """
+    Rename a registry value.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key where the value exists.
+    :type key_path: string
+    :param old_value_name: The current name of the registry value.
+    :type old_value_name: string
+    :param new_value_name: The new name for the registry value.
+    :type new_value_name: string
+    :param new_value: The new value data.
+    :type new_value: string, int, binary
+    """
     try:
         root_key = getattr(winreg, hive)
         key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
@@ -215,6 +313,18 @@ def rename_registry_value(hive, key_path, old_value_name, new_value_name, new_va
 
 # ✓ edit a reg value if it is a string
 def edit_string_registry_value(hive, key_path, value_name, new_value_data):
+    """
+    Edit a registry value if it is a string type.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key where the value exists.
+    :type key_path: string
+    :param value_name: The name of the value to edit.
+    :type value_name: string
+    :param new_value_data: The new string data for the value.
+    :type new_value_data: string
+    """
     try:
         root_key = getattr(winreg, hive)
         key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_ALL_ACCESS)
@@ -240,6 +350,18 @@ def edit_string_registry_value(hive, key_path, value_name, new_value_data):
 
 # ✓ find a value in a registry key or its subkeys
 def find_value_in_registry(hive, key_path, value_name):
+    """
+    Find a value in a registry key or its subkeys.
+
+    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).
+    :type hive: string
+    :param key_path: The path of the registry key to start searching.
+    :type key_path: string
+    :param value_name: The name of the value to find.
+    :type value_name: string
+    :return: The path of the registry key containing the value, if found.
+    :rtype: string
+    """
     try:
         root_key = getattr(winreg, hive)
         key = winreg.OpenKey(root_key, key_path, 0, winreg.KEY_READ)
