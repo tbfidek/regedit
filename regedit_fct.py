@@ -1,3 +1,22 @@
+"""Functions for working with Windows Registry in Python.
+
+This module provides a set of functions to interact with the Windows Registry using Python's `winreg` module. It allows users to perform various operations such as enumerating subkeys, retrieving registry values, creating and deleting registry keys, modifying values, and more.
+
+- `enum_all_subkeys(root_key, path='')`: Enumerates all subkeys under a given registry key.
+- `get_registry_info(root, subkey_path)`: Retrieves registry values for a given key.
+- `create_registry_key(hive, key_path)`: Creates a new registry key.
+- `delete_registry_key(hive, key_path)`: Deletes a registry key and all its subkeys recursively.
+- `create_registry_value(hive, key_path, value_name, value_type, value)`: Creates a new registry value.
+- `delete_registry_value(hive, key_path, value_name)`: Deletes a specific value from a registry key.
+- `rename_registry_key(hive, old_key_path, new_key_name)`: Renames a registry key.
+- `rename_registry_value(hive, key_path, old_value_name, new_value_name, new_value)`: Renames a registry value.
+- `edit_string_registry_value(hive, key_path, value_name, new_value_data)`: Edits a registry value if it is a string type.
+- `find_value_in_registry(hive, key_path, value_name)`: Finds a value in a registry key or its subkeys.
+
+This module provides a range of functionalities to manage and manipulate the Windows Registry through Python, allowing for registry exploration, modification, and manipulation in a programmatic way.
+
+Please refer to the individual function docstrings for more detailed information on their usage and parameters.
+"""
 import winreg
 
 # create key tree
@@ -46,8 +65,8 @@ def get_registry_info(root, subkey_path):
                 
                 if type_ == winreg.REG_SZ:
                     value_type_str = "REG_SZ"
-                elif type_ == winreg.REG_EXPAND_SZ:
-                    value_type_str = "REG_EXPAND_SZ"
+                elif type_ == winreg.REG_MULTI_SZ:
+                    value_type_str = "REG_MULTI_SZ"
                 elif type_ == winreg.REG_BINARY:
                     value_type_str = "REG_BINARY"
                     result.append([name, value_type_str, value.decode('ISO-8859-1')])
@@ -392,13 +411,3 @@ def find_value_in_registry(hive, key_path, value_name):
         print(f"Registry key '{key_path}' not found.")
     except Exception as e:
         print(f"Error searching registry value: {e}")
-#find_value_in_registry(hive, key_path, "filenr")
-
-
-
-# rename_registry_key("HKEY_CURRENT_USER", key_path, "salcf10")
-
-# create_registry_value(hive, key_path, "bnnn", winreg.REG_DWORD, 0)
-# create_registry_value(hive, key_path, "helllo", winreg.REG_SZ, "world")
-# create_registry_value(hive, key_path, "idkk", winreg.REG_MULTI_SZ, ["String1", "String2"])
-#create_registry_value(hive, key_path, "idkkkk", winreg.REG_BINARY, b"hello")
