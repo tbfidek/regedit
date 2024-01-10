@@ -1,3 +1,27 @@
+"""Flask Application for Windows Registry Manipulation.
+
+This Flask application serves as an interface to interact with the Windows Registry using Python's `winreg` module and custom registry manipulation functions from the `regedit_fct` module. It provides a set of endpoints for performing various operations on the Windows Registry.
+
+Endpoints:
+
+- `/`: Renders the index.html template.
+- `/get_subkeys`: Retrieves subkeys for a given registry key.
+- `/get_registry_info`: Retrieves registry information for a given key.
+- `/rename_reg_value`: Renames a registry value.
+- `/delete_reg_value`: Deletes a registry value.
+- `/delete_reg_key`: Deletes a registry key.
+- `/create_reg_key`: Creates a registry key.
+- `/rename_reg_key`: Renames a registry key.
+- `/create_reg_value`: Creates a registry value.
+- `/search_reg_value`: Searches for a value in a registry key or its subkeys.
+- `/set_url`: Sets a URL as a cookie.
+- `/get_url`: Retrieves a URL from cookies.
+
+These endpoints allow users to perform a range of registry operations via HTTP requests, including reading, writing, renaming, and deleting registry keys and values.
+
+Please refer to the docstrings of individual route functions for more specific information about their purposes, expected inputs, and returned outputs.
+"""
+
 from flask import Flask, render_template, request, jsonify, make_response
 import regedit_fct as reg
 import winreg 
