@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>regedit_fct &mdash; RegEdit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            RegEdit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">regedit</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RegEdit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">regedit_fct</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for regedit_fct</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for working with Windows Registry in Python.</span>
+
+<span class="sd">This module provides a set of functions to interact with the Windows Registry using Python&#39;s `winreg` module. It allows users to perform various operations such as enumerating subkeys, retrieving registry values, creating and deleting registry keys, modifying values, and more.</span>
+
+<span class="sd">- `enum_all_subkeys(root_key, path=&#39;&#39;)`: Enumerates all subkeys under a given registry key.</span>
+<span class="sd">- `get_registry_info(root, subkey_path)`: Retrieves registry values for a given key.</span>
+<span class="sd">- `create_registry_key(hive, key_path)`: Creates a new registry key.</span>
+<span class="sd">- `delete_registry_key(hive, key_path)`: Deletes a registry key and all its subkeys recursively.</span>
+<span class="sd">- `create_registry_value(hive, key_path, value_name, value_type, value)`: Creates a new registry value.</span>
+<span class="sd">- `delete_registry_value(hive, key_path, value_name)`: Deletes a specific value from a registry key.</span>
+<span class="sd">- `rename_registry_key(hive, old_key_path, new_key_name)`: Renames a registry key.</span>
+<span class="sd">- `rename_registry_value(hive, key_path, old_value_name, new_value_name, new_value)`: Renames a registry value.</span>
+<span class="sd">- `edit_string_registry_value(hive, key_path, value_name, new_value_data)`: Edits a registry value if it is a string type.</span>
+<span class="sd">- `find_value_in_registry(hive, key_path, value_name)`: Finds a value in a registry key or its subkeys.</span>
+
+<span class="sd">This module provides a range of functionalities to manage and manipulate the Windows Registry through Python, allowing for registry exploration, modification, and manipulation in a programmatic way.</span>
+
+<span class="sd">Please refer to the individual function docstrings for more detailed information on their usage and parameters.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">winreg</span>
+
+<span class="c1"># create key tree</span>
+<div class="viewcode-block" id="enum_all_subkeys">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.enum_all_subkeys">[docs]</a>
+<span class="k">def</span> <span class="nf">enum_all_subkeys</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumerates all subkeys under a given registry key.</span>
+
+<span class="sd">    :param root_key: The root key to start enumerating from.</span>
+<span class="sd">    :type root_key: string</span>
+<span class="sd">    :param path: The path of the registry key.</span>
+<span class="sd">    :type path: string</span>
+<span class="sd">    :return: A list containing the names of all subkeys.</span>
+<span class="sd">    :rtype: list </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_READ</span><span class="p">)</span> <span class="k">as</span> <span class="n">reg_key</span><span class="p">:</span>
+            <span class="n">num_subkeys</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryInfoKey</span><span class="p">(</span><span class="n">reg_key</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">subkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">winreg</span><span class="o">.</span><span class="n">EnumKey</span><span class="p">(</span><span class="n">reg_key</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_subkeys</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">subkeys</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># retrieve registry values for a key</span>
+<div class="viewcode-block" id="get_registry_info">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.get_registry_info">[docs]</a>
+<span class="k">def</span> <span class="nf">get_registry_info</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves registry values for a given key.</span>
+
+<span class="sd">    :param root: The root key to start searching from.</span>
+<span class="sd">    :type root: string</span>
+<span class="sd">    :param subkey_path: The path of the registry key.</span>
+<span class="sd">    :type subkey_path: string</span>
+
+<span class="sd">    :return: A list containing information about the registry values.</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">key</span><span class="p">:</span>
+            <span class="n">num_vals</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryInfoKey</span><span class="p">(</span><span class="n">key</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subkey: </span><span class="si">{</span><span class="n">subkey_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Name, Value, Type:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_vals</span><span class="p">):</span>
+                <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">type_</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">EnumValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">value_type_str</span> <span class="o">=</span> <span class="kc">None</span>
+                
+                <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="n">winreg</span><span class="o">.</span><span class="n">REG_SZ</span><span class="p">:</span>
+                    <span class="n">value_type_str</span> <span class="o">=</span> <span class="s2">&quot;REG_SZ&quot;</span>
+                <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="n">winreg</span><span class="o">.</span><span class="n">REG_MULTI_SZ</span><span class="p">:</span>
+                    <span class="n">value_type_str</span> <span class="o">=</span> <span class="s2">&quot;REG_MULTI_SZ&quot;</span>
+                <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="n">winreg</span><span class="o">.</span><span class="n">REG_BINARY</span><span class="p">:</span>
+                    <span class="n">value_type_str</span> <span class="o">=</span> <span class="s2">&quot;REG_BINARY&quot;</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">value_type_str</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ISO-8859-1&#39;</span><span class="p">)])</span>
+                    <span class="k">continue</span>
+                <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="n">winreg</span><span class="o">.</span><span class="n">REG_DWORD</span><span class="p">:</span>
+                    <span class="n">value_type_str</span> <span class="o">=</span> <span class="s2">&quot;REG_DWORD&quot;</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> 
+
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">value_type_str</span><span class="p">,</span> <span class="n">value</span><span class="p">])</span>
+
+            
+            <span class="k">return</span> <span class="n">result</span>
+        
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Subkey not found.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">PermissionError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Permission denied.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ✓ create registry key</span>
+<div class="viewcode-block" id="create_registry_key">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.create_registry_key">[docs]</a>
+<span class="k">def</span> <span class="nf">create_registry_key</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a new registry key.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key to create.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="c1"># open a registry key (create if it doesn&#39;t exist)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">CreateKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reg key &#39;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="s2">&#39; created&quot;</span><span class="p">)</span>
+        <span class="c1"># close the key after use</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;error creating reg key: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ✓ delete registry key</span>
+<div class="viewcode-block" id="delete_registry_key">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.delete_registry_key">[docs]</a>
+<span class="k">def</span> <span class="nf">delete_registry_key</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Delete a registry key and all its subkeys recursively.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key to delete.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+    <span class="n">old_key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+    
+    <span class="n">subkeys_number</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryInfoKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">subkeys_number</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">subkeys_number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1">#print(f&quot;I: {i}&quot;)</span>
+            <span class="n">subkey_path</span> <span class="o">=</span> <span class="n">key_path</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">winreg</span><span class="o">.</span><span class="n">EnumKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="c1">#print(f&quot;KEY_PATH: {subkey_path}, SUBKEYS_NUMBER: {subkeys_number}&quot;)</span>
+            <span class="n">subkey</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+            <span class="n">subkey_number_next</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryInfoKey</span><span class="p">(</span><span class="n">subkey</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">subkey_number_next</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">winreg</span><span class="o">.</span><span class="n">DeleteKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delete_registry_key</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">)</span>
+
+    <span class="n">winreg</span><span class="o">.</span><span class="n">DeleteKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">)</span>
+    <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">)</span></div>
+
+
+<span class="c1"># ? create registry values (string ✓, dword ✓, multi-string ✓, buffer ?)</span>
+<div class="viewcode-block" id="create_registry_value">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.create_registry_value">[docs]</a>
+<span class="k">def</span> <span class="nf">create_registry_value</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a new registry value.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key where the value will be created.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    :param value_name: The name of the new value.</span>
+<span class="sd">    :type value_name: string</span>
+<span class="sd">    :param value_type: The type of the new value (e.g., &quot;REG_SZ&quot;, &quot;REG_DWORD&quot;).</span>
+<span class="sd">    :type value_type: string</span>
+<span class="sd">    :param value: The data to be stored in the value.</span>
+<span class="sd">    :type value: string, int, binary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">value_type</span><span class="p">)</span>
+        <span class="c1"># open the reg key</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+        
+        <span class="c1"># create the value</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">value_type</span> <span class="o">==</span> <span class="s2">&quot;REG_BINARY&quot;</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">value_type</span> <span class="o">==</span> <span class="s2">&quot;REG_DWORD&quot;</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="n">winreg</span><span class="o">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        
+        <span class="c1"># close the key after deleting</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry value &#39;</span><span class="si">{</span><span class="n">value_name</span><span class="si">}</span><span class="s2">&#39; created successfully.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry key &#39;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating registry value: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ✓ delete a registry key value</span>
+<div class="viewcode-block" id="delete_registry_value">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.delete_registry_value">[docs]</a>
+<span class="k">def</span> <span class="nf">delete_registry_value</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="n">value_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Delete a specific value from a registry key.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    :param value_name: The name of the value to delete.</span>
+<span class="sd">    :type value_name: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+        
+        <span class="c1"># delete the specified value from the registry key</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">DeleteValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_name</span><span class="p">)</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reg value &#39;</span><span class="si">{</span><span class="n">value_name</span><span class="si">}</span><span class="s2">&#39; deleted successfully.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reg key &#39;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;error deleting reg value: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ? rename a registry key - works only for keys with no subkeys</span>
+
+<div class="viewcode-block" id="move_values">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.move_values">[docs]</a>
+<span class="k">def</span> <span class="nf">move_values</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">new_key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move values from one registry key to another.</span>
+
+<span class="sd">    :param old_key: The path of the source registry key.</span>
+<span class="sd">    :type old_key: string</span>
+<span class="sd">    :param new_key: The path of the target registry key.</span>
+<span class="sd">    :type new_key: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">_</span><span class="p">,</span> <span class="n">subkeys_values_number</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryInfoKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">subkeys_values_number</span><span class="p">):</span>
+        <span class="n">value_name</span><span class="p">,</span> <span class="n">value_data</span><span class="p">,</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">EnumValue</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">new_key</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">value_data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="move_subkeys">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.move_subkeys">[docs]</a>
+<span class="k">def</span> <span class="nf">move_subkeys</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">new_key_path</span><span class="p">,</span> <span class="n">old_key_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move subkeys from one registry key to another.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param new_key_path: The path of the target registry key.</span>
+<span class="sd">    :type new_key_path: string</span>
+<span class="sd">    :param old_key_path: The path of the source registry key.</span>
+<span class="sd">    :type old_key_path: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="n">old_key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">old_key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+        <span class="n">renamed_key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">CreateKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">new_key_path</span><span class="p">)</span>
+
+        <span class="n">move_values</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">renamed_key</span><span class="p">)</span>
+
+        <span class="n">subkeys_number</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryInfoKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">subkeys_number</span><span class="p">):</span>
+            <span class="n">subkey_name</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">EnumKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">subkey_path</span> <span class="o">=</span> <span class="n">old_key_path</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">subkey_name</span>
+            <span class="n">move_subkeys</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">new_key_path</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">subkey_name</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">)</span>
+
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">old_key</span><span class="p">)</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">renamed_key</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error moving subkeys: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="rename_registry_key">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.rename_registry_key">[docs]</a>
+<span class="k">def</span> <span class="nf">rename_registry_key</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">old_key_path</span><span class="p">,</span> <span class="n">new_key_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rename a registry key.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param old_key_path: The path of the registry key to rename.</span>
+<span class="sd">    :type old_key_path: string</span>
+<span class="sd">    :param new_key_name: The new name for the registry key.</span>
+<span class="sd">    :type new_key_name: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="n">new_key_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">old_key_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">new_key_name</span>
+
+        <span class="c1"># check if the new key name already exists</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">new_key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_READ</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry key &#39;</span><span class="si">{</span><span class="n">new_key_name</span><span class="si">}</span><span class="s2">&#39; already exists.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="n">parent_key_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">old_key_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">parent_key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">parent_key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_WRITE</span><span class="p">)</span>
+        
+        <span class="c1"># create a new key with the desired name</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CreateKey</span><span class="p">(</span><span class="n">parent_key</span><span class="p">,</span> <span class="n">new_key_name</span><span class="p">)</span>
+        <span class="n">move_subkeys</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">new_key_path</span><span class="p">,</span> <span class="n">old_key_path</span><span class="p">)</span>
+        <span class="n">delete_registry_key</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">old_key_path</span><span class="p">)</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">parent_key</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error renaming registry key: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    
+<span class="c1"># ✓ rename a registry value</span>
+<div class="viewcode-block" id="rename_registry_value">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.rename_registry_value">[docs]</a>
+<span class="k">def</span> <span class="nf">rename_registry_value</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="n">old_value_name</span><span class="p">,</span> <span class="n">new_value_name</span><span class="p">,</span> <span class="n">new_value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rename a registry value.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key where the value exists.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    :param old_value_name: The current name of the registry value.</span>
+<span class="sd">    :type old_value_name: string</span>
+<span class="sd">    :param new_value_name: The new name for the registry value.</span>
+<span class="sd">    :type new_value_name: string</span>
+<span class="sd">    :param new_value: The new value data.</span>
+<span class="sd">    :type new_value: string, int, binary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+
+        <span class="c1"># read the data and type of the old value</span>
+        <span class="n">value</span><span class="p">,</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryValueEx</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">old_value_name</span><span class="p">)</span>
+
+        <span class="c1"># create a new value with the new name and copy the data</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">value_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">new_value</span>
+
+        <span class="n">winreg</span><span class="o">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">new_value_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># delete the old value</span>
+        <span class="k">if</span> <span class="n">old_value_name</span> <span class="o">!=</span> <span class="n">new_value_name</span><span class="p">:</span>
+            <span class="n">winreg</span><span class="o">.</span><span class="n">DeleteValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">old_value_name</span><span class="p">)</span>
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry value &#39;</span><span class="si">{</span><span class="n">old_value_name</span><span class="si">}</span><span class="s2">&#39; renamed to &#39;</span><span class="si">{</span><span class="n">new_value_name</span><span class="si">}</span><span class="s2">&#39; successfully.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry key &#39;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="s2">&#39; or value &#39;</span><span class="si">{</span><span class="n">old_value_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error renaming registry value: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<span class="c1"># rename_registry_value(&quot;HKEY_CURRENT_USER&quot;, key_path, &quot;FileNumber&quot;, &quot;filenr&quot;)</span>
+
+
+<span class="c1"># ✓ edit a reg value if it is a string</span>
+<div class="viewcode-block" id="edit_string_registry_value">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.edit_string_registry_value">[docs]</a>
+<span class="k">def</span> <span class="nf">edit_string_registry_value</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">new_value_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Edit a registry value if it is a string type.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key where the value exists.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    :param value_name: The name of the value to edit.</span>
+<span class="sd">    :type value_name: string</span>
+<span class="sd">    :param new_value_data: The new string data for the value.</span>
+<span class="sd">    :type new_value_data: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_ALL_ACCESS</span><span class="p">)</span>
+
+        <span class="c1"># get the type and current data of the value</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryValueEx</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_name</span><span class="p">)</span>
+
+        <span class="c1"># check if it is REG_SZ (string)</span>
+        <span class="k">if</span> <span class="n">value_type</span> <span class="o">==</span> <span class="n">winreg</span><span class="o">.</span><span class="n">REG_SZ</span><span class="p">:</span>
+            <span class="c1"># update the value with the new string data</span>
+            <span class="n">winreg</span><span class="o">.</span><span class="n">SetValueEx</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">new_value_data</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;String value &#39;</span><span class="si">{</span><span class="n">value_name</span><span class="si">}</span><span class="s2">&#39; in registry updated successfully.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Value &#39;</span><span class="si">{</span><span class="n">value_name</span><span class="si">}</span><span class="s2">&#39; is not a string type in the registry.&quot;</span><span class="p">)</span>
+
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry key &#39;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="s2">&#39; or value &#39;</span><span class="si">{</span><span class="n">value_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error editing registry value: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<span class="c1"># edit_string_registry_value(&quot;HKEY_CURRENT_USER&quot;, key_path, &quot;sal&quot;, &quot;bine tu?&quot;)</span>
+
+
+<span class="c1"># ✓ find a value in a registry key or its subkeys</span>
+<div class="viewcode-block" id="find_value_in_registry">
+<a class="viewcode-back" href="../regedit_fct.html#regedit_fct.find_value_in_registry">[docs]</a>
+<span class="k">def</span> <span class="nf">find_value_in_registry</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="n">value_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find a value in a registry key or its subkeys.</span>
+
+<span class="sd">    :param hive: The registry hive (e.g., HKEY_CURRENT_USER).</span>
+<span class="sd">    :type hive: string</span>
+<span class="sd">    :param key_path: The path of the registry key to start searching.</span>
+<span class="sd">    :type key_path: string</span>
+<span class="sd">    :param value_name: The name of the value to find.</span>
+<span class="sd">    :type value_name: string</span>
+<span class="sd">    :return: The path of the registry key containing the value, if found.</span>
+<span class="sd">    :rtype: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">root_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">winreg</span><span class="p">,</span> <span class="n">hive</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">OpenKey</span><span class="p">(</span><span class="n">root_key</span><span class="p">,</span> <span class="n">key_path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">winreg</span><span class="o">.</span><span class="n">KEY_READ</span><span class="p">)</span>
+
+        <span class="c1"># check the values in the current key</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value_data</span><span class="p">,</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">QueryValueEx</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">hive</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">key_path</span>
+            <span class="c1">#print(f&quot;Found value &#39;{value_name}&#39; with data &#39;{value_data}&#39; in key: {key_path}&quot;)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c1"># value not found in the current key</span>
+        
+        <span class="c1"># recursively search in subkeys</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">subkey_name</span> <span class="o">=</span> <span class="n">winreg</span><span class="o">.</span><span class="n">EnumKey</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">subkey_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="se">\\</span><span class="si">{</span><span class="n">subkey_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">find_value_in_registry</span><span class="p">(</span><span class="n">hive</span><span class="p">,</span> <span class="n">subkey_path</span><span class="p">,</span> <span class="n">value_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">path</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">pass</span> 
+
+        <span class="n">winreg</span><span class="o">.</span><span class="n">CloseKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registry key &#39;</span><span class="si">{</span><span class="n">key_path</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error searching registry value: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<span class="c1">#find_value_in_registry(hive, key_path, &quot;filenr&quot;)</span>
+
+
+
+<span class="c1"># rename_registry_key(&quot;HKEY_CURRENT_USER&quot;, key_path, &quot;salcf10&quot;)</span>
+
+<span class="c1"># create_registry_value(hive, key_path, &quot;bnnn&quot;, winreg.REG_DWORD, 0)</span>
+<span class="c1"># create_registry_value(hive, key_path, &quot;helllo&quot;, winreg.REG_SZ, &quot;world&quot;)</span>
+<span class="c1"># create_registry_value(hive, key_path, &quot;idkk&quot;, winreg.REG_MULTI_SZ, [&quot;String1&quot;, &quot;String2&quot;])</span>
+<span class="c1">#create_registry_value(hive, key_path, &quot;idkkkk&quot;, winreg.REG_BINARY, b&quot;hello&quot;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ioana Pește.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
