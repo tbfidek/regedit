@@ -19,9 +19,17 @@
     <input type="text" id="location_bar" disabled></input>
     <div id="all">
       <div id="registry">
-        <div class="column">name</div>
-        <div class="column">type</div>
-        <div class="column">value</div>
+        <table id="registry-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
       </div>
       <div>
         <div id="functionality">
@@ -48,12 +56,12 @@
           <div id="create_key_box">
             <label for="">Registry Key Name:</label>
             <input type="text" id="registry_key_name" placeholder="">
-            <button id="create_reg_button">Create Registry Key</button>
+            <button class="optionsbtn" id="create_reg_button">Create Registry Key</button>
           </div>
           <div id="search_value_box">
             <label for="">Registry Value Name:</label>
             <input type="text" id="registry_value_name_search" placeholder="">
-            <button id="search_value_button">Search Registry Value</button>
+            <button class="optionsbtn" id="search_value_button">Search Registry Value</button>
           </div>
           <div id="create_value_box">
             <label for="">Registry Value Name:</label>
@@ -67,20 +75,36 @@
             </select>
             <label for="">Registry Data:</label>
             <input type="text" id="registry_value_data" placeholder="">
-            <button id="create_value_button">Create Registry Value</button>
+            <button class="optionsbtn" id="create_value_button">Create Registry Value</button>
           </div>
           <div id="rename_key_box">
             <label for="">Registry Key Name:</label>
             <input type="text" id="rename_key_name" placeholder="">
-            <button id="rename_reg_button">Rename Registry Key</button>
+            <button class="optionsbtn" id="rename_reg_button">Rename Registry Key</button>
           </div>
         </div>
       </div>
-      <div id="popup-edit">
-        <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
+      <div id="confirm-delete">
         <div id ="top-bar">
       
-          <div class="title" id="mydivheader">Edit</div>
+          <div class="title" id="header">Delete Key</div>
+          <button id="close_button_confirm" class="close_button">x</button>
+        </div>
+      
+        <div id="text-box">
+          <p>Are you sure you want to delete this key?</p>
+        </div>
+        
+        <div id ="choice-buttons">
+          <button class="optionsbtn" id="yes_button">Yes</button>
+          <button class="optionsbtn" id="no_button">No</button>
+        </div>
+      </div>
+      
+      <div id="popup-edit">
+        <div id ="top-bar">
+      
+          <div class="title" id="popup-editheader">Edit</div>
           <button id="close_button" class="close_button">x</button>
         </div>
       
@@ -92,525 +116,15 @@
         </div>
         
         <div id ="down-buttons">
-          <button id="save_button">Save</button>
-          <button id="cancel_button">Cancel</button>
-          <button id="delete_button">Delete Value</button>
+          <button class="optionsbtn" id="save_button">Save</button>
+          <button class="optionsbtn" id="cancel_button">Cancel</button>
+          <button class="optionsbtn" id="delete_button">Delete Value</button>
         </div>
       </div>
     </div>
   </div>
-
-  <script>
-    const popup = document.getElementById('popup-edit');
-    const rootList = document.getElementById('rootList');
-    const registryDiv = document.getElementById('registry');
-    let location_bar = document.getElementById('location_bar');
-
-    window.onload = async function() {
-      url = await get_url_cookie();
-      if(url != null){
-        location_bar.value = url;
-        const items = url.split('\\');
-        console.log(items[0]);
-        root = document.querySelector('li[data-key="'+ items[0] +'"]');
-        selectedKey = root.getAttribute('data-key');
-        const subkeys = await fetchSubkeys(selectedKey, '');
-        toggleSubkeys(selectedKey, subkeys, root, '');
-        displayRegistryInfo(selectedKey, '');
-        if (items.length > 1){
-          let path = '';
-          for(var j = 1; j < items.length; j++){
-            var myEles = document.getElementsByTagName('li');
-            for(var i=0; i < myEles.length; i++){
-              if(myEles[i].innerHTML == items[j]){
-                console.log(items[j]);
-                path += items[j] + '\\';
-                const subkeys_ = await fetchSubkeys(items[0], path);
-                toggleSubkeys(items[0], subkeys_, myEles[i], path);
-                displayRegistryInfo(items[0], path);
-              }
-            }
-          }
-        }
-      }
-    };
-
-    let root_ = null;
-    let selectedKey_ = null;
-    let old_name_ = null;
-    //let new_name_ = null;
-    //let new_value = null;
-    
-    function resetOptions(){
-      document.getElementById('create_key_box').style.display = 'none';
-      document.getElementById('create_value_box').style.display = 'none';
-      document.getElementById('rename_key_box').style.display = 'none';
-      document.getElementById('search_value_box').style.display = 'none';
-    }
-
-    
-    document.getElementById('create_reg_key').addEventListener('click', async (event) =>{
-      resetOptions();
-      document.getElementById('create_key_box').style.display = 'flex';
-    });
-    
-    document.getElementById('create_reg_value').addEventListener('click', async (event) =>{
-      resetOptions();
-      document.getElementById('create_value_box').style.display = 'flex';
-    });
-
-    document.getElementById('rename_reg_key').addEventListener('click', async (event) =>{
-      resetOptions();
-      document.getElementById('rename_key_box').style.display = 'flex';
-    });
-
-    document.getElementById('search_reg_value').addEventListener('click', async (event) =>{
-      resetOptions();
-      document.getElementById('search_value_box').style.display = 'flex';
-    });
-
-    document.getElementById('delete_reg_key').addEventListener('click', async (event) => {
-      resetOptions();
-      delete_reg_key();
-    });
-    
-    document.getElementById('search_value_button').addEventListener('click', async (event) =>{
-      let name = document.getElementById('registry_value_name_search').value;
-      path = await search_reg_value(name);
-      if(path != null) {
-        location_bar.value = path;
-        update_url_cookie()
-        const data = location_bar.value.split(/\\(.+)/);
-        displayRegistryInfo(data[0], data[1]);
-      }
-
-    });
-
-    document.getElementById('create_reg_button').addEventListener('click', async (event) =>{
-      let name = document.getElementById('registry_key_name').value;
-      create_reg_key(name);
-    });
-
-    document.getElementById('create_value_button').addEventListener('click', async (event) =>{
-      let name = document.getElementById('registry_value_name').value;
-      let type = document.getElementById('registry_value_type').value;
-      let value = document.getElementById('registry_value_data').value;
-      create_reg_value(name, type, value);
-    });
-
-    document.getElementById('rename_reg_button').addEventListener('click', async (event) =>{
-      let name = document.getElementById('rename_key_name').value;
-      rename_reg_key(name);
-    });
-
-    document.getElementById('save_button').addEventListener('click', async (event) => {
-      popup.style.display = 'none';
-
-      valuebox = document.getElementById('value');
-      valuebox.removeAttribute('disabled');
-
-      namebox = document.getElementById('name');
-      save_reg_info(root_, selectedKey_ , old_name_, namebox.value, valuebox.value);
-    });
-    document.getElementById('close_button').addEventListener('click', async (event) => {
-      popup.style.display = 'none';
-      document.getElementById('value').removeAttribute('disabled');
-    });
-
-    document.getElementById('delete_button').addEventListener('click', async (event) => {
-      popup.style.display = 'none';
-      document.getElementById('value').removeAttribute('disabled');
-
-      delete_reg_value(root_, selectedKey_, old_name_);
-    });
-
-    document.getElementById('cancel_button').addEventListener('click', async (event) => {
-      popup.style.display = 'none';
-      document.getElementById('value').removeAttribute('disabled');
-    });
-    rootList.oncontextmenu = disableRClickMenu;
-    rootList.addEventListener('click', async (event) => {
-      if (event.target.classList.contains('root')) {
-        const selectedKey = event.target.dataset.key;
-        const rootElements = document.querySelectorAll('.root');
-        rootElements.forEach(root => {
-          root.classList.remove('active');
-        });
-        event.target.classList.add('active');
-        location_bar.value = selectedKey;
-        update_url_cookie();
-        const subkeys = await fetchSubkeys(selectedKey, '');
-        toggleSubkeys(selectedKey, subkeys, event.target, '');
-        displayRegistryInfo(selectedKey, '')
-      }
-    });
-    async function fetchSubkeys(root, selectedKey) {
-        const response = await fetch('/get_subkeys', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: root, key: selectedKey })
-        });
   
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to fetch subkeys');
-          return [];
-        }
-      }
 
-    function toggleSubkeys(root, subkeys, rootKeyElement, previous_path) {
-      const existingSublist = rootKeyElement.nextElementSibling;
-        if (existingSublist && existingSublist.classList.contains('sublist')) {
-          existingSublist.classList.toggle('active');
-        } else {
-          const subkeysList = document.createElement('ul');
-          subkeysList.classList.add('sublist');
-          if(subkeys != null) {
-          subkeys.forEach(subkey => {
-            const listItem = document.createElement('li');
-            listItem.textContent = subkey;
-            listItem.classList.add('sublist-item');
-            listItem.oncontextmenu = disableRClickMenu;
-            listItem.addEventListener('click', async (event) => {
-                var selectedKey = ''
-                if(!rootKeyElement.classList.contains('root')){
-                    selectedKey = previous_path.concat("\\",subkey);
-                } else {
-                    selectedKey = subkey
-                }
-                const subkeys = await fetchSubkeys(root, selectedKey);
-                location_bar.value = root + '\\' + selectedKey;
-                update_url_cookie();
-                //console.log(selectedKey)
-                toggleSubkeys(root, subkeys, event.target, selectedKey);
-                displayRegistryInfo(root, selectedKey)
-            });
-
-            listItem.addEventListener('click', async (event) => {
-                console.log(event.key); 
-            });
-
-            subkeysList.appendChild(listItem);
-          });
-  
-          rootKeyElement.insertAdjacentElement('afterend', subkeysList);
-          subkeysList.classList.add('active');
-        }
-      }
-      }
-
-      //////////////////////////// REGISTRY ////////////////////////////
-    
-      async function fetchRegistryInfo(root, selectedKey) {
-        const response = await fetch('/get_registry_info', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: root, key: selectedKey })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to fetch registry info');
-          return [];
-        }
-      }
-
-      async function displayRegistryInfo(root, selectedKey) {
-        const registryInfo = await fetchRegistryInfo(root, selectedKey);
-        console.log(registryInfo)
-        const nameColumn = document.querySelector('.column:nth-child(1)');
-        const typeColumn = document.querySelector('.column:nth-child(2)');
-        const valueColumn = document.querySelector('.column:nth-child(3)');
-
-        // Clear existing content
-        nameColumn.innerHTML = '<div>name</div>';
-        typeColumn.innerHTML = '<div>type</div>';
-        valueColumn.innerHTML = '<div>value</div>';
-        if(registryInfo != null) {
-          registryInfo.forEach(([name, type, value]) => {
-            if(name == ""){
-              name = "(Default)"
-            }
-
-            const nameDiv = document.createElement('div');
-            nameDiv.classList.add('registry-value');
-            nameDiv.textContent = name;
-
-            //Cod pt buton deschidere popup la apasare pe valori
-            nameDiv.addEventListener('click', async (event) => {
-              popup.style.display = 'block';
-              document.getElementById('name').value = name
-              let valuebox = document.getElementById('value')
-              valuebox.value = value
-              if(type != "REG_SZ"){
-                valuebox.setAttribute('disabled', '');
-              }
-
-              root_ = root;
-              selectedKey_ = selectedKey;
-              old_name_ = name;
-
-            });
-
-            const typeDiv = document.createElement('div');
-            typeDiv.textContent = type;
-
-            const valueDiv = document.createElement('div');
-            if (type == "REG_BINARY"){
-              const textEncoder = new TextEncoder();
-              value = textEncoder.encode(value);
-              value = Array.from(value, byte => byte.toString(16).padStart(2,'0')).join('');
-            }
-            valueDiv.textContent = value;
-
-            nameColumn.appendChild(nameDiv);
-            typeColumn.appendChild(typeDiv);
-            valueColumn.appendChild(valueDiv);
-          });
-        }
-      }
-
-      ////////////////////////////////////////  POPUP   ////////////////////////////////////////////////////
-    
-      dragElement(document.getElementById("popup-edit"));
-
-      function dragElement(elmnt) {
-        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        if (document.getElementById(elmnt.id + "header")) {
-          // if present, the header is where you move the DIV from:
-          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-        } else {
-          // otherwise, move the DIV from anywhere inside the DIV:
-          elmnt.onmousedown = dragMouseDown;
-        }
-
-        function dragMouseDown(e) {
-          e = e || window.event;
-          e.preventDefault();
-          // get the mouse cursor position at startup:
-          pos3 = e.clientX;
-          pos4 = e.clientY;
-          document.onmouseup = closeDragElement;
-          // call a function whenever the cursor moves:
-          document.onmousemove = elementDrag;
-        }
-
-        function elementDrag(e) {
-          e = e || window.event;
-          e.preventDefault();
-          // calculate the new cursor position:
-          pos1 = pos3 - e.clientX;
-          pos2 = pos4 - e.clientY;
-          pos3 = e.clientX;
-          pos4 = e.clientY;
-          // set the element's new position:
-          elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-          elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-        }
-
-        function closeDragElement() {
-          // stop moving when mouse button is released:
-          document.onmouseup = null;
-          document.onmousemove = null;
-        }
-      }
-
-      function disableRClickMenu(clickEvent) { 
-            clickEvent.preventDefault(); 
-            // return false;
-        } 
-
-      /////////////////////////////////////////////////////////////////////////////
-      //FUNCTII PT REQUESTURI
-
-      async function save_reg_info(root, selectedKey, old_name_, new_name_, new_value_) {
-        const response = await fetch('/rename_reg_value', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: root, selected_key: selectedKey, new_name: new_name_, old_name: old_name_, new_value: new_value_})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-
-      async function create_reg_key(name) {
-
-        const data = location_bar.value.split(/\\(.+)/);
-
-        const response = await fetch('/create_reg_key', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: data[0], selected_key: data[1], name: name})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-
-      async function search_reg_value(name) {
-
-        const data = location_bar.value.split(/\\(.+)/);
-
-        const response = await fetch('/search_reg_value', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: data[0], path: data[1], name: name})
-        });
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-
-
-      async function create_reg_value(name, type, value) {
-
-        const data = location_bar.value.split(/\\(.+)/);
-
-        const response = await fetch('/create_reg_value', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: data[0], path: data[1], name: name, type: type, value: value})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      } 
-
-      async function rename_reg_key(name) {
-
-        const data = location_bar.value.split(/\\(.+)/);
-
-        const response = await fetch('/rename_reg_key', { 
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: data[0], old_key: data[1], name: name})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-      
-
-      async function delete_reg_value(root, selectedKey, value_name) {
-        const response = await fetch('/delete_reg_value', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: root, selected_key: selectedKey, value_name: value_name})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-
-      async function delete_reg_key() {
-
-        const data = location_bar.value.split(/\\(.+)/);
-
-        const response = await fetch('/delete_reg_key', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ root: data[0], selected_key: data[1]})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-
-      async function update_url_cookie() {
-
-        const response = await fetch('/set_url', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ url: location_bar.value})
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }
-
-      async function get_url_cookie() {
-
-        const response = await fetch('/get_url', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data;
-        } else {
-          console.error('Failed to save registry info');
-          return [];
-        }
-      }      
-
-  </script>
-  
+<script src="../static/script.js"></script>
 </body>
 </html>
